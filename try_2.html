@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Graph</title>
+<style>
+    #cy {
+        width: 100%;
+        height: 600px;
+        display: block;
+    }
+</style>
+</head>
+<body>
+
+<div id="cy"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cytoscape/3.21.2/cytoscape.min.js"></script>
+<script>
+    // Загрузка данных из JSON файла
+    fetch("data.json")
+    .then(response => response.json())
+    .then(data => {
+        // Создание строк таблицы на основе данных из .json файла
+        var nodes = [];
+        var edges = [];
+        var edges_related = [];
+
+        data.forEach(function(item) {
+            // Добавление дисциплины как узла
+            nodes.push({ data: { id: item.discipline, color: '#666' } });
+
+            // Добавление тем как узлов и связей с дисциплиной
+            item.topics.forEach(function(topic) {
+                nodes.push({ data: { id: topic, color: '#328' } });
+                edges.push({ data: { source: item.discipline, target: topic }});
+            });
+
+            // Добавление требуемых тем, как узлов
+            item.related_topics.forEach(function(related_topic) {
+                nodes.push({ data: { id: related_topic, color: '#256'}});
+                edges.push({ data: { source: related_topic, target: item.discipline}});
+            })
+        });
+
+        // Инициализация графа с использованием преобразованных данных
+        var cy = cytoscape({
+            container: document.getElementById('cy'),
+            elements: {
+                nodes: nodes,
+                edges: edges,
+                edges_related: edges_related
+            },
+            style: [
+                {
+                    selector: 'node',
+                    style: {
+                        'label': 'data(id)',
+                        'background-color': 'data(color)',
+                        'text-valign': 'center',
+                        'text-halign': 'center'
+                    }
+                },
+                {
+                    selector: 'edge',
+                    style: {
+                        'width': 1,
+                        'line-color': '#666',
+                        'target-arrow-color': '#666',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier'
+                    }
+                },
+                {
+                    selector: 'edge_related',
+                    style: {
+                        'width': 1,
+                        'line-color': '#555',
+                        'target-arrow-color': '#666',
+                        'target-arrow-shape': 'triangle',
+                        'curve-style': 'bezier'
+                    }
+                }
+            ],
+            layout: {
+                name: 'cose'
+            }
+        });
+    })
+    .catch(error => console.error('Ошибка при загрузке данных:', error));
+</script>
+</body>
+</html>
